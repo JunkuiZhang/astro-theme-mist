@@ -1,0 +1,13 @@
+---
+import Icon from './Icon.astro';
+interface Props { headings: { depth: number; slug: string; text: string }[] }
+const { headings } = Astro.props;
+---
+{headings.length > 0 && <details class="floating-toc" data-floating-toc data-pagefind-ignore>
+  <summary aria-controls="article-toc-panel"><Icon name="list" size={18} /><span>目录</span><Icon name="chevron" size={14} class="toc-chevron" /></summary>
+  <div class="floating-toc-panel" id="article-toc-panel">
+    <div class="floating-toc-heading"><h2>文章目录</h2><button class="icon-button" type="button" data-close-toc aria-label="收起文章目录" hidden><Icon name="close" size={18} /></button></div>
+    <nav aria-label="文章目录">{headings.map(heading => <a class={`depth-${heading.depth}`} href={`#${heading.slug}`} data-toc-link>{heading.text}</a>)}</nav>
+    <a class="toc-back-top" href="#main">回到顶部 ↑</a>
+  </div>
+</details>}

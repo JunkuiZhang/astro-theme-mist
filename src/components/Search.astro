@@ -1,0 +1,11 @@
+---
+import Icon from './Icon.astro';
+import { url } from '../lib/posts';
+---
+<dialog id="search-dialog" class="search-dialog" data-base={url()} aria-labelledby="search-title">
+  <div class="search-heading"><span id="search-title">搜索文章</span><button class="icon-button" data-close-search aria-label="关闭搜索"><Icon name="close" /></button></div>
+  <div class="search-input-wrap"><Icon name="search" /><input id="search-input" type="search" autocomplete="off" placeholder="搜索文章…" aria-label="搜索文章" /><kbd>ESC</kbd></div>
+  <p id="search-status" class="search-status" role="status" aria-live="polite">搜索标题、标签或文章内容。</p>
+  <div id="search-results" class="search-results"></div>
+  <div class="search-footer"><span>↑ ↓ 浏览结果 · Enter 打开</span><span>全文检索</span></div>
+</dialog>

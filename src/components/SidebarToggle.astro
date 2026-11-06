@@ -1,0 +1,26 @@
+---
+import Icon from './Icon.astro';
+---
+<button class="icon-button sidebar-toggle" data-toggle-sidebar aria-label="收起侧栏" title="收起侧栏" aria-expanded="true" aria-controls="site-sidebar" hidden><Icon name="sidebar" /></button>
+<!-- Initialize before the following avatar is parsed, without waiting for the main module. -->
+<script is:inline>
+  (() => {
+    const button = document.querySelector('[data-toggle-sidebar]');
+    if (!button) return;
+    const root = document.documentElement;
+    const setCollapsed = collapsed => {
+      root.dataset.sidebar = collapsed ? 'collapsed' : 'expanded';
+      const label = collapsed ? '展开侧栏' : '收起侧栏';
+      button.setAttribute('aria-expanded', String(!collapsed));
+      button.setAttribute('aria-label', label);
+      button.setAttribute('title', label);
+    };
+    setCollapsed(root.dataset.sidebar === 'collapsed');
+    button.addEventListener('click', () => {
+      const collapsed = root.dataset.sidebar !== 'collapsed';
+      setCollapsed(collapsed);
+      try { localStorage.setItem('mist-sidebar', collapsed ? 'collapsed' : 'expanded'); } catch { /* Storage may be unavailable. */ }
+    });
+    button.hidden = false;
+  })();
+</script>

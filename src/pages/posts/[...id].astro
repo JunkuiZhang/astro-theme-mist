@@ -1,0 +1,38 @@
+---
+import { render } from 'astro:content';
+import 'katex/dist/katex.min.css';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/Icon.astro';
+import FloatingToc from '../../components/FloatingToc.astro';
+import { siteConfig } from '../../config';
+import { getPosts, postUrl, tagUrl, url, dateLabel, readingTime, excerpt, type Post } from '../../lib/posts';
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, index) => ({ params: { id: post.id }, props: { post, previous: posts[index + 1], next: posts[index - 1] } }));
+}
+interface Props { post: Post; previous?: Post; next?: Post }
+const { post, previous, next } = Astro.props;
+const { Content, headings } = await render(post);
+const toc = headings.filter(h => h.depth <= 3);
+const structuredData = {
+  '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.data.title,
+  description: excerpt(post), datePublished: post.data.published.toISOString(),
+  dateModified: (post.data.updated || post.data.published).toISOString(),
+  author: { '@type': 'Person', name: siteConfig.author, url: new URL(url('about/'), Astro.site).href },
+  mainEntityOfPage: new URL(postUrl(post), Astro.site).href,
+};
+---
+<BaseLayout title={post.data.title} description={excerpt(post)} article>
+  <FloatingToc slot="floating" headings={toc} />
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData).replaceAll('<', '\u003c')} />
+  <div class="reading-progress" aria-hidden="true"></div>
+  <div class="article-toolbar"><a href={url()} data-back-to-posts><span>←</span> 返回文章</a><button class="reading-width-toggle" aria-pressed="true"><Icon name="expand" size={16} /><span>标准阅读</span></button></div>
+  <div class="reading-layout">
+    <article class="article-paper" data-pagefind-body>
+      <header class="article-header"><div class="eyebrow">{post.data.category} </div><h1 data-pagefind-meta="title">{post.data.title}</h1><div class="article-meta"><img src={url(siteConfig.avatar)} alt="" width="24" height="24" /><span>{siteConfig.author}</span><span class="meta-dot">·</span><time datetime={post.data.published.toISOString()}>{dateLabel(post.data.published)}</time><span class="meta-dot">·</span><span>{readingTime(post)} 分钟阅读</span></div>{post.data.updated && <p class="updated-date">更新于 {dateLabel(post.data.updated)}</p>}<div class="article-tags">{post.data.tags.map(tag => <a href={tagUrl(tag)} data-pagefind-filter="tag">#{tag}</a>)}</div></header>
+      <div class="prose"><Content /></div>
+
+      <nav class="post-pagination" aria-label="相邻文章" data-pagefind-ignore>{previous ? <a href={postUrl(previous)}><span>← 上一篇</span><strong>{previous.data.title}</strong></a> : <span></span>}{next && <a href={postUrl(next)}><span>下一篇 →</span><strong>{next.data.title}</strong></a>}</nav>
+    </article>
+  </div>
+</BaseLayout>

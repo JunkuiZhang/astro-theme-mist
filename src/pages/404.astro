@@ -1,0 +1,5 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/posts';
+---
+<BaseLayout title="页面未找到" noindex><section class="not-found"><strong>404</strong><h1>页面不存在</h1><p>请检查地址，或返回首页。</p><a class="solid-button" href={url()}>回到首页 ↗</a></section></BaseLayout>

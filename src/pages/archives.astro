@@ -1,0 +1,11 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { getPosts, postUrl, dateLabel } from '../lib/posts';
+const posts = await getPosts();
+const years = [...new Set(posts.map(post => post.data.published.getUTCFullYear()))];
+---
+<BaseLayout title="文章归档" active="archives">
+  <header class="page-heading"><h1>归档</h1><p>{posts.length} 篇文章</p></header>
+  <div class="archive-layout"><div class="archive-years">{years.map(year => <section class="archive-year" id={`year-${year}`}><div class="archive-year-title"><h2>{year}</h2><span>{posts.filter(p => p.data.published.getUTCFullYear() === year).length} 篇</span></div><div>{posts.filter(p => p.data.published.getUTCFullYear() === year).map(post => <a class="archive-row" href={postUrl(post)}><time datetime={post.data.published.toISOString()}>{dateLabel(post.data.published).slice(5)}</time><h3>{post.data.title}</h3><span>{post.data.category}</span><Icon name="diagonal" size={17} /></a>)}</div></section>)}</div><nav class="year-nav" aria-label="按年份跳转">{years.map(year => <a href={`#year-${year}`}>{year}<span>↗</span></a>)}</nav></div>
+</BaseLayout>

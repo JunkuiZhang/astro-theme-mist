@@ -1,0 +1,87 @@
+---
+import '../styles/global.css';
+import '../styles/round-font.css';
+import roundFont from '../assets/fonts/mist-round-core.woff2?url';
+import Icon from '../components/Icon.astro';
+import Search from '../components/Search.astro';
+import SidebarToggle from '../components/SidebarToggle.astro';
+import PageMotion from '../components/PageMotion.astro';
+import { siteConfig } from '../config';
+import { url } from '../lib/posts';
+interface Props { title?: string; description?: string; active?: string; article?: boolean; noindex?: boolean }
+const { title, description = siteConfig.description, active = 'home', article = false, noindex = false } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const navigation = [
+  { id: 'home', title: '文章', icon: 'home', path: '' },
+  { id: 'archives', title: '归档', icon: 'archive', path: 'archives/' },
+  { id: 'tags', title: '标签', icon: 'tag', path: 'tags/' },
+  { id: 'about', title: '关于', icon: 'user', path: 'about/' },
+];
+---
+<!doctype html>
+<html lang="zh-CN" class:list={{ 'reading-wide': article }}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#fcf9fa" />
+    <title>{title ? `${title} · ${siteConfig.title}` : siteConfig.title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title || siteConfig.title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={article ? 'article' : 'website'} />
+    <meta property="og:url" content={canonical} />
+    <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+    <link rel="preload" href={roundFont} as="font" type="font/woff2" crossorigin />
+    <link rel="alternate" type="application/rss+xml" title={siteConfig.title} href={url('rss.xml')} />
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem('mist-theme');
+        document.documentElement.dataset.theme = saved === 'light' || saved === 'dark' ? saved : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      } catch { document.documentElement.dataset.theme = 'light'; }
+      try {
+        document.documentElement.dataset.sidebar = localStorage.getItem('mist-sidebar') === 'collapsed' ? 'collapsed' : 'expanded';
+      } catch { document.documentElement.dataset.sidebar = 'expanded'; }
+    </script>
+    {article && <script is:inline>
+      // Use the new preference so legacy mist-reading-wide=false cannot override
+      // the new wide default. Restore future explicit choices before first paint.
+      try {
+        document.documentElement.classList.toggle('reading-wide', localStorage.getItem('mist-reading-mode') !== 'standard');
+      } catch { /* Keep the default wide layout when storage is blocked. */ }
+    </script>}
+    <PageMotion postsPath={url('posts/')} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳至正文</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="header-identity">
+          <SidebarToggle />
+          <a class="brand" href={url()} aria-label={`${siteConfig.title} 首页`}><img src={url(siteConfig.avatar)} alt="" width="38" height="38" /><span>{siteConfig.author}</span></a>
+        </div>
+        <div class="header-actions">
+          <button class="search-trigger" data-open-search aria-label="搜索文章"><Icon name="search" size={18} /><span>搜索</span><kbd>⌘ / Ctrl K</kbd></button>
+          <button class="icon-button theme-toggle" data-toggle-theme aria-label="切换深浅主题"><Icon name="sun" class="sun-icon" /><Icon name="moon" class="moon-icon" /></button>
+          <button class="icon-button mobile-menu-toggle" aria-label="展开导航" aria-expanded="false" aria-controls="site-sidebar"><Icon name="menu" /></button>
+        </div>
+      </div>
+    </header>
+    <div class="site-shell">
+      <aside class="site-sidebar" id="site-sidebar" aria-label="主导航">
+        <nav>{navigation.map(item => <a href={url(item.path)} class:list={['nav-link', { active: active === item.id }]} aria-label={item.title} aria-current={active === item.id ? 'page' : undefined}><Icon name={item.icon} size={18} /><span class="nav-label">{item.title}</span></a>)}</nav>
+        <div class="sidebar-bottom"><a href={siteConfig.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub（新窗口）"><Icon name="github" size={18} /></a><a href={url('rss.xml')} aria-label="RSS 订阅"><Icon name="rss" size={18} /></a></div>
+      </aside>
+      <div class="sidebar-backdrop" data-close-menu></div>
+      <div class:list={['main-column', { 'article-column': article }]}>
+        <main id="main"><slot /></main>
+        <footer class="site-footer"><span>© {new Date().getUTCFullYear()} {siteConfig.author}</span><a href={url('about/#theme')}>{siteConfig.themeName}</a></footer>
+      </div>
+    </div>
+    <slot name="floating" />
+    <Search />
+    <script src="../scripts/site.ts"></script>
+  </body>
+</html>

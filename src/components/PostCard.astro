@@ -1,0 +1,17 @@
+---
+import Icon from './Icon.astro';
+import PostArt from './PostArt.astro';
+import { postUrl, excerpt, dateLabel, type Post } from '../lib/posts';
+import { getPostArt } from '../lib/post-art';
+interface Props { post: Post }
+const { post } = Astro.props;
+const art = getPostArt(post.id, post.data.title, post.data.tags, post.data.category);
+---
+<article class="post-card" data-post-card data-category={post.data.category} data-art-side={art.side}>
+  <PostArt art={art} />
+  <div class="card-content">
+    <h3><a href={postUrl(post)}>{post.data.title}</a></h3>
+    <p class="card-excerpt">{excerpt(post)}</p>
+    <div class="card-bottom"><time datetime={post.data.published.toISOString()}>{dateLabel(post.data.published)}</time><span>{post.data.category}</span><Icon name="arrow" size={17} /></div>
+  </div>
+</article>

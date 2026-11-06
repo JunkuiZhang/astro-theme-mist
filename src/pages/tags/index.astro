@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/Icon.astro';
+import { getPosts, tagsWithCount, tagUrl } from '../../lib/posts';
+const tags = tagsWithCount(await getPosts());
+---
+<BaseLayout title="探索标签" active="tags">
+  <header class="page-heading"><h1>标签</h1><p>{tags.length} 个标签</p></header>
+  <div class="tag-grid">{tags.map(([tag, count]) => <a class="tag-card" href={tagUrl(tag)}><h2><span>#</span> {tag}</h2><div><span>{count} 篇文章</span><Icon name="diagonal" size={20} /></div></a>)}</div>
+</BaseLayout>

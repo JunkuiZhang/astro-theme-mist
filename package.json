@@ -1,0 +1,32 @@
+{
+  "name": "astro-theme-mist",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "dev": "astro dev",
+    "check": "astro check",
+    "build": "astro build && pagefind --site dist",
+    "preview": "astro preview",
+    "new-post": "node scripts/new-post.mjs",
+    "import-blog": "node scripts/import-blog.mjs",
+    "verify": "node scripts/verify-build.mjs"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "7.3.6",
+    "@astrojs/rss": "4.0.19",
+    "@astrojs/sitemap": "3.7.4",
+    "astro": "7.4.7",
+    "katex": "0.19.1",
+    "rehype-katex": "7.0.1",
+    "remark-directive": "4.0.0",
+    "remark-math": "6.0.0",
+    "unist-util-visit": "5.2.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "pagefind": "1.6.0",
+    "typescript": "6.0.3"
+  }
+}

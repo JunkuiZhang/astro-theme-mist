@@ -1,0 +1,57 @@
+name: Build and deploy Mist
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy this theme demo to GitHub Pages
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Set repository variable SITE_URL for a custom domain.
+      SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io', github.repository_owner) }}
+      BASE_PATH: ${{ vars.BASE_PATH || (vars.SITE_URL && '/') || (github.event.repository.name == format('{0}.github.io', github.repository_owner) && '/') || format('/{0}', github.event.repository.name) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Check, build, index, and verify
+        run: npm run check && npm run build && npm run verify
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && (vars.ENABLE_PAGES == 'true' || (github.event_name == 'workflow_dispatch' && inputs.deploy))
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && (vars.ENABLE_PAGES == 'true' || (github.event_name == 'workflow_dispatch' && inputs.deploy))
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

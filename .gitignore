@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.*
+!.env.example
+.sites-runtime/
+.DS_Store
+artifacts/
+reports/
+/site.config.local.json
+/src/content/posts/
+/public/images/avatar.jpg

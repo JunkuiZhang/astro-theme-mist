@@ -1,0 +1,207 @@
+---
+import type { PostArtStyle } from '../lib/post-art';
+interface Props { art: PostArtStyle }
+const { art: { kind, palette, panel, pattern } } = Astro.props;
+---
+<div class:list={['post-art', `art-${kind}`, `art-palette-${palette}`, `art-panel-${panel}`]} data-art-pattern={pattern} aria-hidden="true">
+  <svg viewBox="0 0 180 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g class="art-backdrop">
+      {pattern === 'orbit' && <>
+        <circle class="art-orbit" cx="91" cy="99" r="66" />
+        <ellipse class="art-guide" cx="91" cy="99" rx="76" ry="48" transform="rotate(-32 91 99)" />
+        <path class="art-dash" d="M21 51h12m-6-6v12M144 150h12m-6-6v12" />
+      </>}
+      {pattern === 'grid' && <>
+        <path class="art-guide" d="M30 40v120m30-120v120m30-120v120m30-120v120m30-120v120M20 50h140M20 80h140M20 110h140M20 140h140" />
+        <circle class="art-orbit" cx="97" cy="95" r="54" />
+        <path class="art-dash" d="M24 37h12m-6-6v12M144 160h12m-6-6v12" />
+      </>}
+      {pattern === 'sparkle' && <>
+        <path class="art-orbit" d="M88 26c29 21 68 25 69 63s-16 70-58 77-75-16-73-54S58 5 88 26Z" />
+        <path class="art-dash" d="m34 43 3 8 8 3-8 3-3 8-3-8-8-3 8-3Zm110 93 3 8 8 3-8 3-3 8-3-8-8-3 8-3ZM141 41v12m-6-6h12" />
+      </>}
+      {pattern === 'petal' && <>
+        <path class="art-orbit" d="M90 54c38-49 79 0 42 38 55 27 12 79-32 47-26 54-80 13-49-29-56-23-13-79 27-50Z" />
+        <path class="art-dash" d="M32 46q12-10 14 3-12 10-14-3Zm104 108q12-10 14 3-12 10-14-3Z" />
+      </>}
+      <circle class="art-dot" cx="37" cy="153" r="2" />
+      <circle class="art-dot" cx="151" cy="77" r="2" />
+    </g>
+    <g class="art-drawing" stroke-linecap="round" stroke-linejoin="round">
+      {kind === 'memory' && <g transform="rotate(-8 90 100)">
+        <path class="art-stroke" d="M44 102v30h12m78-37h13v29" />
+        <rect class="art-shadow" x="31" y="70" width="106" height="37" rx="7" />
+        <rect class="art-paper" x="24" y="62" width="106" height="37" rx="7" />
+        <rect class="art-label" x="36" y="72" width="19" height="16" rx="3" />
+        <rect class="art-label" x="66" y="72" width="19" height="16" rx="3" />
+        <rect class="art-label" x="96" y="72" width="19" height="16" rx="3" />
+        <rect class="art-shadow" x="56" y="122" width="106" height="37" rx="7" />
+        <rect class="art-paper" x="49" y="114" width="106" height="37" rx="7" />
+        <rect class="art-label" x="61" y="124" width="19" height="16" rx="3" />
+        <rect class="art-label" x="91" y="124" width="19" height="16" rx="3" />
+        <rect class="art-label" x="121" y="124" width="19" height="16" rx="3" />
+        <path class="art-stroke" d="m64 163 32 0m8 0h12" />
+      </g>}
+      {kind === 'atom' && <>
+        <circle class="art-paper" cx="90" cy="104" r="14" />
+        <ellipse class="art-stroke" cx="90" cy="104" rx="64" ry="24" transform="rotate(-25 90 104)" />
+        <ellipse class="art-stroke" cx="90" cy="104" rx="64" ry="24" transform="rotate(35 90 104)" />
+        <ellipse class="art-stroke" cx="90" cy="104" rx="64" ry="24" transform="rotate(95 90 104)" />
+        <circle class="art-label" cx="35" cy="131" r="6" />
+        <circle class="art-label" cx="127" cy="149" r="6" />
+        <circle class="art-label" cx="94" cy="43" r="6" />
+      </>}
+      {kind === 'terminal' && <>
+        <path class="art-shadow" d="M36 67h110v82H36z" />
+        <rect class="art-paper" x="28" y="55" width="114" height="84" rx="10" transform="rotate(-6 85 97)" />
+        <path class="art-stroke" d="m28 78 114-12" />
+        <path class="art-strong" d="m49 94 12 9-10 11m21-3 20-2" />
+        <circle class="art-dot" cx="40" cy="67" r="2" /><circle class="art-dot" cx="49" cy="66" r="2" />
+        <path class="art-label" d="m112 115 4 7 8 1-6 6 2 8-8-4-7 4 1-8-6-6 9-1Z" />
+        <path class="art-stroke" d="m57 154 25-3m8-1 12-1" />
+      </>}
+      {kind === 'chip' && <>
+        <path class="art-shadow" d="m52 69 82 4-3 81-82-4Z" />
+        <g transform="rotate(-8 90 103)">
+          <path class="art-stroke" d="M59 57v13m20-13v13m20-13v13m20-13v13M59 139v14m20-14v14m20-14v14m20-14v14M41 80H28m13 20H28m13 20H28m109-40h14m-14 20h14m-14 20h14" />
+          <rect class="art-paper" x="41" y="68" width="96" height="72" rx="12" />
+          <rect class="art-label" x="59" y="83" width="60" height="42" rx="7" />
+          <path class="art-strong" d="m75 97-6 7 6 7m28-14 6 7-6 7m-10-16-7 30" />
+        </g>
+        <path class="art-stroke" d="m45 169 28-2m8-1 13-1" />
+      </>}
+      {kind === 'cloud' && <>
+        <path class="art-shadow" d="M49 75c-25 0-30 39-4 44h86c30-4 25-43-1-42-7-36-57-37-66-4Z" />
+        <path class="art-paper" d="M43 64c-25 0-30 39-4 44h86c30-4 25-43-1-42-7-36-57-37-66-4Z" />
+        <path class="art-strong" d="M79 92V69m-9 9 9-10 9 10" />
+        <rect class="art-label" x="75" y="129" width="62" height="33" rx="7" transform="rotate(-7 106 145)" />
+        <path class="art-stroke" d="M54 121v23h14m22 1h13m17-2h4" />
+        <circle class="art-dot" cx="127" cy="69" r="3" />
+      </>}
+      {kind === 'notes' && <>
+        <rect class="art-shadow" x="52" y="62" width="81" height="103" rx="9" />
+        <g transform="rotate(-8 88 102)">
+          <rect class="art-paper" x="42" y="49" width="81" height="103" rx="9" />
+          <path class="art-stroke" d="M60 46v11m17-11v11m17-11v11m17-11v11M58 81h41M58 95h32M58 109h22" />
+          <path class="art-label" d="m106 106 10-6 11 48-5 11-8-8Z" />
+          <path class="art-stroke" d="m111 112 8-2" />
+        </g>
+        <path class="art-stroke" d="M47 169h29m8 0h11" />
+      </>}
+      {kind === 'server' && <g transform="rotate(-5 90 105)">
+        <rect class="art-shadow" x="50" y="54" width="94" height="110" rx="12" />
+        <rect class="art-paper" x="39" y="45" width="94" height="110" rx="12" />
+        <rect class="art-label" x="49" y="57" width="74" height="23" rx="5" />
+        <rect class="art-label" x="49" y="89" width="74" height="23" rx="5" />
+        <rect class="art-label" x="49" y="121" width="74" height="23" rx="5" />
+        <path class="art-stroke" d="M59 68h24m-24 32h24m-24 32h24" />
+        <circle class="art-dot" cx="111" cy="68" r="3" /><circle class="art-dot" cx="111" cy="100" r="3" /><circle class="art-dot" cx="111" cy="132" r="3" />
+        <path class="art-paper" d="m130 33 4 9 10 2-7 7 1 10-8-5-9 5 2-10-7-7 10-2Z" />
+      </g>}
+      {kind === 'network' && <>
+        <path class="art-stroke" d="M90 83v31m-43 12v-12h86v12M44 128l-8-20m99 20 8-20" />
+        <path class="art-shadow" d="M61 52c-17-3-25 24-5 32h70c22-6 16-34-5-33-9-25-42-24-49-3Z" />
+        <path class="art-paper" d="M55 44c-17-3-25 24-5 32h70c22-6 16-34-5-33-9-25-42-24-49-3Z" />
+        <rect class="art-label" x="25" y="126" width="44" height="27" rx="7" />
+        <rect class="art-label" x="111" y="126" width="44" height="27" rx="7" />
+        <path class="art-strong" d="M39 140h3m8 0h3m73 0h3m8 0h3" />
+        <path class="art-stroke" d="m75 54 8 7 15-13" />
+      </>}
+      {kind === 'containers' && <g transform="rotate(-5 90 110)">
+        <path class="art-shadow" d="M28 145h126l-11 17H43Z" />
+        <rect class="art-paper" x="36" y="104" width="50" height="35" rx="5" />
+        <rect class="art-label" x="92" y="104" width="50" height="35" rx="5" />
+        <rect class="art-paper" x="64" y="63" width="50" height="35" rx="5" />
+        <path class="art-stroke" d="M48 114v15m12-15v15m12-15v15m32-15v15m12-15v15m12-15v15M76 73v15m12-15v15m12-15v15M26 146h129" />
+        <path class="art-label" d="m129 43 4 9 9 3-9 4-4 9-3-9-9-4 9-3Z" />
+      </g>}
+      {kind === 'laptop' && <g transform="rotate(-6 90 106)">
+        <rect class="art-shadow" x="43" y="59" width="104" height="80" rx="9" />
+        <rect class="art-paper" x="35" y="51" width="104" height="80" rx="9" />
+        <rect class="art-label" x="44" y="60" width="86" height="61" rx="4" />
+        <path class="art-paper" d="m35 132-13 18c-3 5 2 9 8 9h114c6 0 11-4 8-9l-13-18Z" />
+        <path class="art-stroke" d="M74 144h26M59 83l10 8-10 8m21 0h17" />
+        <path class="art-paper" d="m117 88 3 7 8 2-6 5 1 8-6-4-7 4 1-8-5-5 8-2Z" />
+      </g>}
+      {kind === 'keyboard' && <g transform="rotate(-9 90 108)">
+        <path class="art-stroke" d="M85 72V59c0-16 29 2 29-15V32" />
+        <rect class="art-shadow" x="26" y="83" width="136" height="73" rx="11" />
+        <rect class="art-paper" x="20" y="75" width="136" height="73" rx="11" />
+        {[0, 1, 2, 3, 4, 5].map(column => <>
+          <rect class="art-label" x={31 + column * 19} y="86" width="13" height="12" rx="3" />
+          <rect class="art-label" x={31 + column * 19} y="104" width="13" height="12" rx="3" />
+        </>)}
+        <rect class="art-label" x="50" y="122" width="70" height="13" rx="4" />
+        <path class="art-stroke" d="M32 129h9m89 0h12" />
+        <path class="art-label" d="M44 40c-9-10-22 6 0 19 22-13 9-29 0-19Z" />
+      </g>}
+      {kind === 'books' && <>
+        <rect class="art-shadow" x="36" y="138" width="113" height="23" rx="7" />
+        <path class="art-paper" d="M43 126h99v25H43c-18 0-18-25 0-25Z" />
+        <path class="art-stroke" d="M44 134h88m-88 9h88" />
+        <g transform="rotate(-9 83 88)">
+          <rect class="art-paper" x="44" y="39" width="77" height="85" rx="8" />
+          <path class="art-label" d="M44 47a8 8 0 0 1 8-8h7v85h-7a8 8 0 0 1-8-8Z" />
+          <path class="art-label" d="M92 40h14v28l-7-5-7 5Z" />
+          <path class="art-stroke" d="M72 85h31m-31 12h22" />
+        </g>
+        <path class="art-stroke" d="m148 78 5 5-5 5-5-5Z" />
+      </>}
+      {kind === 'constellation' && <>
+        <path class="art-shadow" d="M49 151V80a45 45 0 0 1 90 0v71Z" />
+        <path class="art-paper" d="M40 142V73a45 45 0 0 1 90 0v69Z" />
+        <path class="art-label" d="M91 45a26 26 0 1 0 23 37c-25 7-39-17-23-37Z" />
+        <path class="art-guide" d="m54 110 26 15 28-19 15 20" />
+        <circle class="art-dot" cx="54" cy="110" r="3" /><circle class="art-dot" cx="80" cy="125" r="3" /><circle class="art-dot" cx="108" cy="106" r="3" />
+        <path class="art-label" d="m136 66 3 8 9 3-9 3-3 8-3-8-8-3 8-3Z" />
+        <path class="art-stroke" d="M35 153h101m-68 10h36" />
+      </>}
+      {kind === 'teacup' && <>
+        <ellipse class="art-shadow" cx="88" cy="149" rx="61" ry="13" />
+        <ellipse class="art-paper" cx="84" cy="142" rx="58" ry="11" />
+        <path class="art-paper" d="M122 85h12c27 0 24 38-4 38h-10v-12h10c13 0 16-15 3-15h-11Z" />
+        <path class="art-paper" d="m39 80 5 41c4 25 69 25 73 0l5-41Z" />
+        <ellipse class="art-label" cx="80" cy="81" rx="41" ry="10" />
+        <path class="art-stroke" d="M61 64c-16-14 13-17 0-31m27 29c-15-14 13-16 0-30" />
+        <path class="art-strong" d="M66 112v2m27-2v2" />
+        <path class="art-stroke" d="m76 121 4 3 4-3" />
+        <path class="art-label" d="m123 44 3 6 7 2-7 3-3 6-2-6-7-3 7-2Z" />
+      </>}
+      {kind === 'camera' && <g transform="rotate(-7 90 104)">
+        <rect class="art-shadow" x="35" y="78" width="121" height="72" rx="12" />
+        <path class="art-paper" d="M39 69h18l7-14h42l8 14h20a12 12 0 0 1 12 12v46a12 12 0 0 1-12 12H39a12 12 0 0 1-12-12V81a12 12 0 0 1 12-12Z" />
+        <path class="art-label" d="M28 91h118v28H28Z" />
+        <circle class="art-paper" cx="86" cy="104" r="28" />
+        <circle class="art-label" cx="86" cy="104" r="18" />
+        <path class="art-stroke" d="M77 100a10 10 0 0 1 10-7m31-14h13" />
+        <circle class="art-dot" cx="42" cy="81" r="3" />
+        <path class="art-stroke" d="M54 156h27m10 0h17" />
+      </g>}
+      {kind === 'gamepad' && <g transform="rotate(-7 90 109)">
+        <path class="art-stroke" d="M89 72V56c0-15 29 0 29-17" />
+        <path class="art-shadow" d="M57 80h71c17 0 23 22 29 57 4 21-12 29-27 10l-11-12H69l-12 13c-16 18-30 9-26-11 6-35 10-57 26-57Z" />
+        <path class="art-paper" d="M49 72h71c17 0 23 22 29 57 4 21-12 29-27 10l-11-12H61l-12 13c-16 18-30 9-26-11 6-35 10-57 26-57Z" />
+        <path class="art-label" d="M49 90h11v11h11v11H60v11H49v-11H38v-11h11Z" />
+        <circle class="art-label" cx="117" cy="96" r="6" /><circle class="art-label" cx="130" cy="111" r="6" />
+        <path class="art-stroke" d="M80 115h4m9 0h4" />
+      </g>}
+      {kind === 'chart' && <g transform="rotate(-5 90 104)">
+        <rect class="art-shadow" x="39" y="52" width="112" height="105" rx="10" />
+        <rect class="art-paper" x="30" y="43" width="112" height="105" rx="10" />
+        <path class="art-guide" d="M45 72h82m-82 24h82m-82 24h82" />
+        <rect class="art-label" x="47" y="111" width="17" height="22" rx="3" />
+        <rect class="art-label" x="76" y="92" width="17" height="41" rx="3" />
+        <rect class="art-label" x="105" y="73" width="17" height="60" rx="3" />
+        <path class="art-strong" d="m48 94 29-24 18 7 26-22m-11 0h11v11" />
+        <path class="art-stroke" d="M64 161h45" />
+      </g>}
+      {kind === 'neural' && <>
+        <path class="art-stroke" d="m41 64 49 38-49 39m0-77 49-26m-49 64h98M41 141l49 26m0-129 49 26-49 38 49 39-49 26M41 64l49 103m-49-26L90 38" />
+        <circle class="art-paper" cx="41" cy="64" r="11" /><circle class="art-paper" cx="41" cy="102" r="11" /><circle class="art-paper" cx="41" cy="141" r="11" />
+        <circle class="art-label" cx="90" cy="38" r="11" /><circle class="art-label" cx="90" cy="167" r="11" />
+        <circle class="art-paper" cx="139" cy="64" r="11" /><circle class="art-paper" cx="139" cy="102" r="11" /><circle class="art-paper" cx="139" cy="141" r="11" />
+        <path class="art-label" d="m90 80 6 15 16 7-16 6-6 16-6-16-16-6 16-7Z" />
+      </>}
+    </g>
+  </svg>
+</div>

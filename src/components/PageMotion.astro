@@ -1,0 +1,83 @@
+---
+interface Props { postsPath: string }
+const { postsPath } = Astro.props;
+---
+<!-- The native opt-in and fallback styles must exist before the first rendering opportunity. -->
+<style is:inline>
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+    :root { view-transition-name: page-content; --page-in: 0 14px; --page-out: 0 -8px; --page-fallback-in: 0 12px; --page-enter-duration: 340ms; --page-leave-duration: 180ms; --page-easing: cubic-bezier(.22, 1, .36, 1); }
+    :root[data-motion='article-in'] { --page-in: 26px 0; --page-out: 0 0; --page-fallback-in: 12px 0; }
+    :root[data-motion='article-out'], :root[data-motion='back'] { --page-in: -20px 0; --page-out: 26px 0; --page-fallback-in: -12px 0; }
+    :root[data-motion='article-in'], :root[data-motion='article-out'] { --page-enter-duration: 620ms; --page-leave-duration: 420ms; --page-easing: cubic-bezier(.25, .8, .25, 1); }
+    /* Capture the viewport so a scrolled list is not realigned to the article's top. */
+    .site-header { view-transition-name: page-header; }
+    .site-sidebar { view-transition-name: page-sidebar; }
+    ::view-transition { pointer-events: none; }
+    ::view-transition-group(page-content) { animation: none; z-index: 0; }
+    ::view-transition-group(page-header) { animation: none; z-index: 2; }
+    ::view-transition-group(page-sidebar) { animation: none; z-index: 1; }
+    ::view-transition-old(page-header), ::view-transition-old(page-sidebar) { display: none; }
+    ::view-transition-new(page-header), ::view-transition-new(page-sidebar) { animation: none; }
+    ::view-transition-old(page-content), ::view-transition-new(page-content) {
+      height: 100%; object-fit: none; object-position: left top; mix-blend-mode: normal;
+    }
+    ::view-transition-old(page-content) { animation: page-leave var(--page-leave-duration) ease-out both; }
+    ::view-transition-new(page-content) { animation: page-enter var(--page-enter-duration) var(--page-easing) both; }
+    :root[data-page-entrance='fallback'] #main { animation: page-initial-enter var(--page-enter-duration) var(--page-easing) both; }
+    @keyframes page-leave { to { opacity: 0; translate: var(--page-out); } }
+    @keyframes page-enter { from { opacity: 0; translate: var(--page-in); } to { opacity: 1; translate: 0 0; } }
+    @keyframes page-initial-enter { from { opacity: 0; translate: var(--page-fallback-in); } to { opacity: 1; translate: 0 0; } }
+  }
+</style>
+<script define:vars={{ postsPath }}>
+  (() => {
+    const root = document.documentElement;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    const hasPageReveal = 'onpagereveal' in window;
+
+    function setDirection(activation) {
+      const from = new URL(activation?.from?.url || document.referrer || location.href);
+      const to = new URL(activation?.entry?.url || location.href);
+      const fromArticle = from.origin === location.origin && from.pathname.startsWith(postsPath);
+      const toArticle = to.origin === location.origin && to.pathname.startsWith(postsPath);
+      const backward = activation?.navigationType === 'traverse' && activation.entry.index < activation.from?.index;
+      root.dataset.motion = toArticle && !fromArticle ? 'article-in'
+        : fromArticle && !toArticle ? 'article-out'
+        : backward ? 'back' : 'page';
+    }
+
+    function reveal(event) {
+      setDirection(window.navigation?.activation);
+      if (event.viewTransition) {
+        root.dataset.pageEntrance = 'native';
+        // A skipped native transition leaves the content visible; never replay an entrance later.
+        event.viewTransition.ready.catch(() => {});
+        if (reducedMotion.matches) event.viewTransition.skipTransition();
+      } else {
+        root.dataset.pageEntrance = reducedMotion.matches ? 'static' : 'fallback';
+      }
+    }
+
+    // Modern browsers choose their path in pagereveal, before paint. Older browsers
+    // get a CSS entrance as soon as #main is parsed, without waiting for scripts or images.
+    setDirection(window.navigation?.activation);
+    root.dataset.pageEntrance = reducedMotion.matches ? 'static' : hasPageReveal ? 'pending' : 'fallback';
+    if (hasPageReveal) addEventListener('pagereveal', reveal);
+    addEventListener('pageswap', event => {
+      // Preserve the outgoing presentation until the browser has captured it.
+      // Changing its entrance state or timing here would insert a snapped frame.
+      event.viewTransition?.ready.catch(() => {});
+      if (reducedMotion.matches) event.viewTransition?.skipTransition();
+    });
+    document.addEventListener('animationend', event => {
+      if (event.target.id === 'main' && event.animationName === 'page-initial-enter') root.dataset.pageEntrance = 'static';
+    });
+    reducedMotion.addEventListener('change', event => {
+      if (event.matches) {
+        root.dataset.pageEntrance = 'static';
+        document.activeViewTransition?.skipTransition();
+      }
+    });
+  })();
+</script>
