@@ -270,7 +270,9 @@ if ($('[data-journal]')) {
 }
 
 // Search loads Pagefind only when needed. The JSON fallback also works in dev.
-interface SearchEntry { title: string; url: string; excerpt: string; body?: string; tags?: string[] }
+interface SearchEntry { title: string; url: string; excerpt: string; matched?: string[] }
+interface SearchIndexEntry extends SearchEntry { body?: string; tags?: string[] }
+interface SearchReturn { query: string; entries: SearchEntry[]; selected: string; scrollTop: number }
 interface PagefindResult { data(): Promise<{ url: string; meta: { title?: string }; excerpt: string }> }
 interface Pagefind { search(query: string): Promise<{ results: PagefindResult[] }> }
 const dialog = $<HTMLDialogElement>('#search-dialog');
@@ -279,7 +281,7 @@ const results = $('#search-results');
 const status = $('#search-status');
 const base = dialog?.dataset.base || '/';
 let pagefindPromise: Promise<Pagefind> | undefined;
-let fallbackPromise: Promise<SearchEntry[]> | undefined;
+let fallbackPromise: Promise<SearchIndexEntry[]> | undefined;
 let queryVersion = 0;
 let debounce: ReturnType<typeof setTimeout>;
 
@@ -292,8 +294,9 @@ async function search(query: string): Promise<SearchEntry[]> {
     const response = await engine.search(query);
     return await Promise.all(response.results.slice(0, 20).map(async result => {
       const data = await result.data();
-      const text = new DOMParser().parseFromString(data.excerpt, 'text/html').body.textContent || '';
-      return { title: data.meta.title || '未命名文章', url: data.url, excerpt: text };
+      const snippet = new DOMParser().parseFromString(data.excerpt, 'text/html').body;
+      const matched = [...snippet.querySelectorAll('mark')].map(mark => mark.textContent || '');
+      return { title: data.meta.title || '未命名文章', url: data.url, excerpt: snippet.textContent || '', matched };
     }));
   } catch {
     fallbackPromise ||= fetch(`${base}search-index.json`).then(response => {
@@ -306,7 +309,58 @@ async function search(query: string): Promise<SearchEntry[]> {
       const title = entry.title.toLocaleLowerCase();
       const all = `${title} ${entry.tags?.join(' ')} ${entry.body}`.toLocaleLowerCase();
       return { entry, score: terms.every(term => all.includes(term)) ? terms.reduce((sum, term) => sum + (title.includes(term) ? 10 : 1), 0) : 0 };
-    }).filter(item => item.score).sort((a, b) => b.score - a.score).slice(0, 20).map(item => item.entry);
+    }).filter(item => item.score).sort((a, b) => b.score - a.score).slice(0, 20).map(({ entry }) => {
+      const { title, url, body = '' } = entry;
+      let snippet = entry.excerpt;
+      if (!terms.some(term => snippet.toLocaleLowerCase().includes(term))) {
+        const lowerBody = body.toLocaleLowerCase();
+        const hit = terms.map(term => lowerBody.indexOf(term)).find(index => index >= 0);
+        if (hit !== undefined) {
+          const start = Math.max(0, hit - 32);
+          snippet = (start ? '…' : '') + body.slice(start, start + 110) + (start + 110 < body.length ? '…' : '');
+        }
+      }
+      return { title, url, excerpt: snippet };
+    });
+  }
+}
+function highlightMatches(element: HTMLElement, text: string, terms: string[]) {
+  const literals = [...new Set(terms.filter(Boolean))].sort((a, b) => b.length - a.length)
+    .map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (!literals.length) { element.textContent = text; return; }
+  const pattern = new RegExp(literals.join('|'), 'giu');
+  let start = 0;
+  for (const match of text.matchAll(pattern)) {
+    element.append(text.slice(start, match.index));
+    const mark = document.createElement('mark');
+    mark.textContent = match[0];
+    element.append(mark);
+    start = match.index + match[0].length;
+  }
+  element.append(text.slice(start));
+}
+function showResults(query: string, entries: SearchEntry[]) {
+  if (!results || !status) return;
+  results.replaceChildren();
+  status.textContent = entries.length ? `找到 ${entries.length === 20 ? '至少 ' : ''}${entries.length} 篇相关文章` : `没有找到“${query}”，试试其他关键词。`;
+  for (const entry of entries) {
+    const target = new URL(entry.url, location.origin);
+    if (target.origin !== location.origin) continue;
+    const link = document.createElement('a');
+    link.className = 'search-result';
+    link.href = target.href;
+    const terms = [...query.split(/\s+/), ...(entry.matched || [])];
+    const title = document.createElement('strong');
+    const snippet = document.createElement('p');
+    highlightMatches(title, entry.title, terms);
+    highlightMatches(snippet, entry.excerpt, terms);
+    link.append(title, snippet);
+    link.addEventListener('click', event => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const mistSearch: SearchReturn = { query, entries, selected: target.href, scrollTop: results.scrollTop };
+      history.replaceState({ ...history.state, mistSearch }, '');
+    });
+    results.append(link);
   }
 }
 async function runSearch() {
@@ -318,20 +372,7 @@ async function runSearch() {
   try {
     const entries = await search(query);
     if (version !== queryVersion) return;
-    if (status) status.textContent = entries.length ? `找到 ${entries.length === 20 ? '至少 ' : ''}${entries.length} 篇相关文章` : `没有找到“${query}”，试试其他关键词。`;
-    for (const entry of entries) {
-      const link = document.createElement('a');
-      link.className = 'search-result';
-      const target = new URL(entry.url, location.origin);
-      if (target.origin !== location.origin) continue;
-      link.href = target.href;
-      const title = document.createElement('strong');
-      title.textContent = entry.title;
-      const excerpt = document.createElement('p');
-      excerpt.textContent = entry.excerpt;
-      link.append(title, excerpt);
-      results?.append(link);
-    }
+    showResults(query, entries);
   } catch {
     if (version === queryVersion && status) status.textContent = '搜索索引暂时无法加载，请稍后重试。';
   }
@@ -341,6 +382,27 @@ function openSearch() {
   if (!dialog?.open) dialog?.showModal();
   input?.focus();
 }
+function restoreSearch() {
+  const saved: SearchReturn | undefined = history.state?.mistSearch;
+  if (!saved || !Array.isArray(saved.entries) || !input || !results || !dialog) return;
+  clearTimeout(debounce);
+  ++queryVersion;
+  input.value = saved.query;
+  showResults(saved.query, saved.entries);
+  const selected = [...results.querySelectorAll('a')].find(link => link.href === saved.selected);
+  if (!dialog.open) dialog.showModal();
+  results.scrollTop = saved.scrollTop;
+  selected?.focus({ preventScroll: true });
+}
+function forgetSearchReturn() {
+  if (!history.state?.mistSearch) return;
+  const state = { ...history.state };
+  delete state.mistSearch;
+  history.replaceState(state, '');
+}
+restoreSearch();
+addEventListener('pageshow', event => { if (event.persisted) restoreSearch(); });
+dialog?.addEventListener('close', forgetSearchReturn);
 $$('[data-open-search]').forEach(button => button.addEventListener('click', openSearch));
 $('[data-close-search]')?.addEventListener('click', () => dialog?.close());
 dialog?.addEventListener('click', event => {
@@ -349,6 +411,7 @@ dialog?.addEventListener('click', event => {
   if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
 });
 input?.addEventListener('input', () => {
+  forgetSearchReturn();
   ++queryVersion;
   clearTimeout(debounce);
   debounce = setTimeout(runSearch, 180);
